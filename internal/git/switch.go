@@ -49,7 +49,28 @@ func switchRepository(ctx context.Context, log logger.Logger, cfg *config.Config
 
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return string(output), fmt.Errorf("can not run %q: %w", cfg.GitCmd, err)
+		return string(output), fmt.Errorf("can not checkout: %w", err)
+	}
+
+	if cfg.Pull {
+		pullCmd := exec.CommandContext(ctx, cfg.GitCmd, "pull")
+		pullCmd.Dir = repo.Path
+
+		if cfg.ShowOutput {
+			log.Infof("Pulling %q...", repo.Name)
+			pullCmd.Stdout = log.WriterLevel(logrus.InfoLevel)
+			pullCmd.Stderr = log.WriterLevel(logrus.WarnLevel)
+			if err := pullCmd.Run(); err != nil {
+				return "", fmt.Errorf("can not run %q: %w", cfg.GitCmd, err)
+			}
+
+			return "", nil
+		}
+
+		pullOutput, err := pullCmd.CombinedOutput()
+		if err != nil {
+			return string(pullOutput), fmt.Errorf("can not pull: %w", err)
+		}
 	}
 
 	return string(output), nil

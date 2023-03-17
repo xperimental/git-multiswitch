@@ -19,6 +19,7 @@ const (
 	envDryRun     = envPrefix + "DRY_RUN"
 	envShowOutput = envPrefix + "SHOW_GIT_OUTPUT"
 	envEscapeRepo = envPrefix + "ESCAPE_REPO"
+	envPull       = envPrefix + "PULL"
 )
 
 type Config struct {
@@ -29,6 +30,7 @@ type Config struct {
 	DryRun     bool
 	ShowOutput bool
 	EscapeRepo bool
+	Pull       bool
 }
 
 func (c Config) LogrusLevel() logrus.Level {
@@ -56,6 +58,7 @@ func Parse(cmd string, args []string, envFunc func(string) string) (*Config, err
 	flags.BoolVarP(&cfg.DryRun, "dry-run", "n", cfg.DryRun, "If true, only show what would be done without actually switching branches.")
 	flags.BoolVar(&cfg.ShowOutput, "show-git-output", cfg.ShowOutput, "If true, shows git output while switching branches.")
 	flags.BoolVar(&cfg.EscapeRepo, "escape-repo", cfg.EscapeRepo, "Escape to the parent repository if run inside a git repository.")
+	flags.BoolVar(&cfg.Pull, "pull", cfg.Pull, `If true, a "git pull" will be done after switching branches.`)
 	if err := flags.Parse(args); err != nil {
 		return nil, err
 	}
@@ -86,6 +89,10 @@ func Parse(cmd string, args []string, envFunc func(string) string) (*Config, err
 
 	if escapeRepo := envFunc(envEscapeRepo); escapeRepo != "" {
 		cfg.EscapeRepo = true
+	}
+
+	if pull := envFunc(envPull); pull != "" {
+		cfg.Pull = true
 	}
 
 	if _, err := logrus.ParseLevel(cfg.LogLevel); err != nil {
