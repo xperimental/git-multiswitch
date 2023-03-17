@@ -16,6 +16,7 @@ type Config struct {
 	Branch     string
 	DryRun     bool
 	ShowOutput bool
+	EscapeRepo bool
 }
 
 func (c Config) LogrusLevel() logrus.Level {
@@ -42,6 +43,7 @@ func Parse(cmd string, args []string) (*Config, error) {
 	flags.StringVarP(&cfg.Branch, "branch", "b", cfg.Branch, "Name of branch to switch to.")
 	flags.BoolVarP(&cfg.DryRun, "dry-run", "n", cfg.DryRun, "If true, only show what would be done without actually switching branches.")
 	flags.BoolVar(&cfg.ShowOutput, "show-git-output", cfg.ShowOutput, "If true, shows git output while switching branches.")
+	flags.BoolVar(&cfg.EscapeRepo, "escape-repo", cfg.EscapeRepo, "Escape to the parent repository if run inside a git repository.")
 	if err := flags.Parse(args); err != nil {
 		return nil, err
 	}

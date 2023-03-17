@@ -32,7 +32,7 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	repos, err := paths.ListRepositories(ctx, cfg.BasePath)
+	repos, err := paths.ListRepositories(ctx, cfg)
 	if err != nil {
 		log.Fatalf("Error listing repositories: %s", err)
 	}
