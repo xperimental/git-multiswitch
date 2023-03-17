@@ -41,16 +41,28 @@ func main() {
 		log.Fatal("No repositories found!")
 	}
 
-	results := git.SwitchBranches(ctx, log, cfg.GitCmd, cfg.Branch, repos)
+	switchConfigs, skipped, err := git.FindBranches(ctx, log, cfg, repos)
+	if err != nil {
+		log.Fatalf("Error while finding branches: %s", err)
+	}
+
+	if len(skipped) > 0 {
+		fmt.Println("Skipped repositories:")
+		for _, s := range skipped {
+			fmt.Printf(" - %s\n", s)
+		}
+	}
+
+	results := git.SwitchBranches(ctx, log, cfg, switchConfigs)
 
 	sort.Slice(results, func(i, j int) bool {
-		return strings.Compare(results[i].Name, results[j].Name) < 0
+		return strings.Compare(results[i].Config.Name, results[j].Config.Name) < 0
 	})
 
 	errors := 0
 	for _, r := range results {
 		if r.Err != nil {
-			fmt.Printf("%s: Error while switching: %s\n", r.Name, r.Err)
+			fmt.Printf("%s: Error while switching: %s\n", r.Config.Name, r.Err)
 			errors++
 
 			continue

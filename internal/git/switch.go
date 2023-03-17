@@ -4,32 +4,27 @@ import (
 	"context"
 	"fmt"
 	"os/exec"
-	"path/filepath"
 
 	"github.com/sirupsen/logrus"
+	"github.com/xperimental/git-multiswitch/internal/config"
 	"github.com/xperimental/git-multiswitch/internal/logger"
 )
 
 type Result struct {
 	Err    error
-	Path   string
-	Name   string
-	Branch string
+	Config SwitchConfig
 }
 
-func SwitchBranches(ctx context.Context, log logger.Logger, gitCmd, targetBranch string, repositoryPaths []string) []Result {
+func SwitchBranches(ctx context.Context, log logger.Logger, cfg *config.Config, switchConfigs []SwitchConfig) []Result {
 	results := []Result{}
 
-	for _, path := range repositoryPaths {
-		name := filepath.Base(path)
-		log.Infof("Switching %q to %q...", name, targetBranch)
-		err := switchRepository(ctx, log, gitCmd, targetBranch, path)
+	for _, repo := range switchConfigs {
+		log.Infof("Switching %q to %q...", repo.Name, repo.TargetBranch)
+		err := switchRepository(ctx, log, cfg.GitCmd, repo.TargetBranch, repo.Path)
 
 		results = append(results, Result{
 			Err:    err,
-			Path:   path,
-			Name:   name,
-			Branch: targetBranch,
+			Config: repo,
 		})
 	}
 
