@@ -27,6 +27,7 @@ func main() {
 		log.Fatalf("Error in configuration: %s", err)
 	default:
 	}
+	log.SetLevel(cfg.LogrusLevel())
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
