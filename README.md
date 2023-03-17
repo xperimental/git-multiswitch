@@ -37,4 +37,12 @@ The idea of this tool is to run it in a directory containing git repositories wh
 git multiswitch -b feature-b
 ```
 
-Will switch all repositories contained in the current path to the "feature-b" branch, if a local branch with that name already exists.
+This will switch all git repositories contained in the current directory to the "feature-b" branch, if a local branch with that name already exists.
+
+### When run from inside a git repository
+
+If you run `git-multiswitch` from inside a repository it will by default "search down" to find repositories to switch to a common branch. This behaviour can be changed using the `--escape-repo` option. When this option is specified and the tool is run from inside a repository, it will first look for the parent directory of the git repository and start its search from there:
+
+```shell
+git multiswitch --escape-repo -b feature-b
+```
