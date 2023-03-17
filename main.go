@@ -53,6 +53,15 @@ func main() {
 		}
 	}
 
+	if cfg.DryRun {
+		fmt.Println("Would switch the following repositories:")
+		for _, repo := range switchConfigs {
+			fmt.Printf(" - %s (at %q) to %q\n", repo.Name, repo.Path, repo.TargetBranch)
+		}
+
+		return
+	}
+
 	results := git.SwitchBranches(ctx, log, cfg, switchConfigs)
 
 	sort.Slice(results, func(i, j int) bool {
