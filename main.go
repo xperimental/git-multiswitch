@@ -19,7 +19,7 @@ var (
 )
 
 func main() {
-	cfg, err := config.Parse(os.Args[0], os.Args[1:])
+	cfg, err := config.Parse(os.Args[0], os.Args[1:], os.Getenv)
 	switch {
 	case err == pflag.ErrHelp:
 		return

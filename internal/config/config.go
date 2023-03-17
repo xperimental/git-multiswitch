@@ -9,6 +9,18 @@ import (
 	"github.com/spf13/pflag"
 )
 
+const (
+	envPrefix = "GIT_MULTISWITCH_"
+
+	envLogLevel   = envPrefix + "LOG_LEVEL"
+	envGitCmd     = envPrefix + "GIT_COMMAND"
+	envBasePath   = envPrefix + "BASE_PATH"
+	envBranch     = envPrefix + "BRANCH"
+	envDryRun     = envPrefix + "DRY_RUN"
+	envShowOutput = envPrefix + "SHOW_GIT_OUTPUT"
+	envEscapeRepo = envPrefix + "ESCAPE_REPO"
+)
+
 type Config struct {
 	LogLevel   string
 	GitCmd     string
@@ -24,7 +36,7 @@ func (c Config) LogrusLevel() logrus.Level {
 	return lvl
 }
 
-func Parse(cmd string, args []string) (*Config, error) {
+func Parse(cmd string, args []string, envFunc func(string) string) (*Config, error) {
 	wd, err := os.Getwd()
 	if err != nil {
 		return nil, fmt.Errorf("can not get working directory: %w", err)
@@ -46,6 +58,34 @@ func Parse(cmd string, args []string) (*Config, error) {
 	flags.BoolVar(&cfg.EscapeRepo, "escape-repo", cfg.EscapeRepo, "Escape to the parent repository if run inside a git repository.")
 	if err := flags.Parse(args); err != nil {
 		return nil, err
+	}
+
+	if logLevel := envFunc(envLogLevel); logLevel != "" {
+		cfg.LogLevel = logLevel
+	}
+
+	if gitCmd := envFunc(envGitCmd); gitCmd != "" {
+		cfg.GitCmd = gitCmd
+	}
+
+	if basePath := envFunc(envBasePath); basePath != "" {
+		cfg.BasePath = basePath
+	}
+
+	if branch := envFunc(envBranch); branch != "" {
+		cfg.Branch = branch
+	}
+
+	if dryRun := envFunc(envDryRun); dryRun != "" {
+		cfg.DryRun = true
+	}
+
+	if showOutput := envFunc(envShowOutput); showOutput != "" {
+		cfg.ShowOutput = true
+	}
+
+	if escapeRepo := envFunc(envEscapeRepo); escapeRepo != "" {
+		cfg.EscapeRepo = true
 	}
 
 	if _, err := logrus.ParseLevel(cfg.LogLevel); err != nil {
