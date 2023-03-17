@@ -11,35 +11,46 @@ import (
 )
 
 type Result struct {
-	Err    error
 	Config SwitchConfig
+	Output string
+	Err    error
 }
 
 func SwitchBranches(ctx context.Context, log logger.Logger, cfg *config.Config, switchConfigs []SwitchConfig) []Result {
 	results := []Result{}
 
 	for _, repo := range switchConfigs {
-		log.Infof("Switching %q to %q...", repo.Name, repo.TargetBranch)
-		err := switchRepository(ctx, log, cfg.GitCmd, repo.TargetBranch, repo.Path)
+		output, err := switchRepository(ctx, log, cfg, repo)
 
 		results = append(results, Result{
-			Err:    err,
 			Config: repo,
+			Output: output,
+			Err:    err,
 		})
 	}
 
 	return results
 }
 
-func switchRepository(ctx context.Context, log logger.Logger, gitCmd, branch, path string) error {
-	cmd := exec.CommandContext(ctx, gitCmd, "checkout", branch)
-	cmd.Stdout = log.WriterLevel(logrus.DebugLevel)
-	cmd.Stderr = log.WriterLevel(logrus.InfoLevel)
-	cmd.Dir = path
+func switchRepository(ctx context.Context, log logger.Logger, cfg *config.Config, repo SwitchConfig) (string, error) {
+	cmd := exec.CommandContext(ctx, cfg.GitCmd, "checkout", repo.TargetBranch)
+	cmd.Dir = repo.Path
 
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("can not run %q: %w", gitCmd, err)
+	if cfg.ShowOutput {
+		log.Infof("Switching %q to %q...", repo.Name, repo.TargetBranch)
+		cmd.Stdout = log.WriterLevel(logrus.InfoLevel)
+		cmd.Stderr = log.WriterLevel(logrus.WarnLevel)
+		if err := cmd.Run(); err != nil {
+			return "", fmt.Errorf("can not run %q: %w", cfg.GitCmd, err)
+		}
+
+		return "", nil
 	}
 
-	return nil
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return string(output), fmt.Errorf("can not run %q: %w", cfg.GitCmd, err)
+	}
+
+	return string(output), nil
 }

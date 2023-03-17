@@ -69,13 +69,19 @@ func main() {
 	})
 
 	errors := 0
+	fmt.Println("Results:")
 	for _, r := range results {
 		if r.Err != nil {
-			fmt.Printf("%s: Error while switching: %s\n", r.Config.Name, r.Err)
-			errors++
+			fmt.Printf(" - %s had error while switching: %s\n", r.Config.Name, r.Err)
+			if !cfg.ShowOutput {
+				fmt.Printf("   git output:\n%s\n", r.Output)
+			}
 
+			errors++
 			continue
 		}
+
+		fmt.Printf(" - %s switched to %q\n", r.Config.Name, r.Config.TargetBranch)
 	}
 
 	os.Exit(errors)
